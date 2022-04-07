@@ -20,12 +20,12 @@ def register_lead():
     db.session.commit()
 
     return {
-        "name": lead_data["name"],
-        "email": lead_data["email"],
-        "phone": lead_data["phone"],
-        "creation_date": lead_data["creation_date"],
-        "last_visit": lead_data["last_visit"],
-        "visits": lead_data["visits"]
+        "name": lead.name,
+        "email": lead.email,
+        "phone": lead.phone,
+        "creation_date": lead.creation_date,
+        "last_visit": lead.last_visit,
+        "visits": lead.visits
     }, HTTPStatus.CREATED
 
 def list_leads():
