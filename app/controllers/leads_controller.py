@@ -50,7 +50,19 @@ def register_lead():
     }, HTTPStatus.CREATED
 
 def list_leads():
-    ...
+    try:
+        leads = (
+            LeadModel
+            .query 
+            .all()
+        )
+
+        return jsonify(leads), HTTPStatus.OK
+    
+    except FileNotFoundError:
+        return {
+            "message": "Nenhum arquivo encontrado"
+        }, HTTPStatus.NOT_FOUND
 
 def update_leads_visits():
     ...
