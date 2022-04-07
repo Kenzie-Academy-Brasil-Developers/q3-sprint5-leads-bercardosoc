@@ -1,13 +1,13 @@
-import re
-from sqlite3 import IntegrityError
+from http import HTTPStatus
+from datetime import datetime
 from click import MissingParameter
 from flask import jsonify, request
-from app.exc.leads_exception import InvalidEmail, InvalidPhone
-from app.leads_package.leads_services import validate_keys
-from app.models.leads_model import LeadModel
-from http import HTTPStatus
+from sqlite3 import IntegrityError
 from app.configs.database import db
-from sqlalchemy.exc import IntegrityError
+from app.models.leads_model import LeadModel
+from sqlalchemy.exc import IntegrityError, NoResultFound
+from app.leads_package.leads_services import validate_keys
+from app.exc.leads_exception import InvalidEmail, InvalidPhone
 
 def register_lead():
     expected_keys = {"name", "email", "phone"}
@@ -64,8 +64,37 @@ def list_leads():
             "message": "Nenhum arquivo encontrado"
         }, HTTPStatus.NOT_FOUND
 
-def update_leads_visits():
-    ...
+def update_leads_visits(email: str):
 
-def delete_lead():
-    ...
+    try:
+
+        lead_data = LeadModel.query.filter_by(email=email).one()
+
+        setattr(lead_data, "last_visit", datetime.now())
+        setattr(lead_data, "visits", (lead_data.__dict__["visits"] + 1))
+
+        db.session.add(lead_data)
+        db.session.commit()
+
+        return "", HTTPStatus.ACCEPTED
+
+    except NoResultFound:
+        return {
+            "error": "E-mail not found. E-mail should be a valid string."
+        }, HTTPStatus.BAD_REQUEST
+        
+
+def delete_lead(email: str):
+
+    try: 
+        lead_data = LeadModel.query.filter_by(email=email).one()
+
+        db.session.delete(lead_data)
+        db.session.commit()
+
+        return "", HTTPStatus.NO_CONTENT
+
+    except NoResultFound:
+        return {
+            "error": "E-mail not found. E-mail should be a valid string."
+        }, HTTPStatus.NOT_FOUND
