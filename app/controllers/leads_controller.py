@@ -2,7 +2,7 @@ import re
 from sqlite3 import IntegrityError
 from click import MissingParameter
 from flask import jsonify, request
-from app.exc.leads_exception import InvalidEmail, InvalidFields, InvalidPhone
+from app.exc.leads_exception import InvalidEmail, InvalidPhone
 from app.leads_package.leads_services import validate_keys
 from app.models.leads_model import LeadModel
 from http import HTTPStatus
