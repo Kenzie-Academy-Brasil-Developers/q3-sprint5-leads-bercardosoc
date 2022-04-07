@@ -3,3 +3,6 @@ class InvalidPhone(Exception):
 
 class InvalidEmail(Exception):
     ...
+
+class InvalidFields(Exception):
+    ...

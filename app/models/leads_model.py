@@ -1,4 +1,4 @@
-from app.exc.leads_exception import InvalidEmail, InvalidPhone
+from app.exc.leads_exception import InvalidEmail, InvalidFields, InvalidPhone
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import validates
 from app.configs.database import db
@@ -35,6 +35,13 @@ class LeadModel(db.Model):
 
     @validates("phone")
     def validate_phone(self, _, phone_to_be_tested):
-        if not re.match(r"(?:\+?\(?\d{2,3}?\)?\D?)?\d{5}\D?\d{4}", phone_to_be_tested):
+        if not re.match(r"(?:\+?\(?\d{2}?\)?\D?)?\d{5}\D?\d{4}", phone_to_be_tested):
             raise InvalidPhone 
         return phone_to_be_tested
+
+    """ @validates("email", "phone", "name")
+    def validate_entered_fields(self, _, email_to_be_tested, phone_to_be_tested, name_to_be_tested):
+        if type(email_to_be_tested) or type(phone_to_be_tested) or type(name_to_be_tested) != str:
+            raise InvalidFields
+        return email_to_be_tested, phone_to_be_tested, name_to_be_tested
+ """
