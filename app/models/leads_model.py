@@ -9,7 +9,6 @@ import re
 @dataclass
 class LeadModel(db.Model):
 
-    id: int 
     name: str 
     email: str
     phone: str 
@@ -37,4 +36,5 @@ class LeadModel(db.Model):
     def validate_phone(self, _, phone_to_be_tested):
         if not re.match(r"(?:\+?\(?\d{2}?\)?\D?)?\d{5}\D?\d{4}", phone_to_be_tested):
             raise InvalidPhone 
+
         return phone_to_be_tested

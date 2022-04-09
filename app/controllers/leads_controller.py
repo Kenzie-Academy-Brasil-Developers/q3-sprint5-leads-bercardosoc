@@ -5,7 +5,7 @@ from flask import jsonify, request
 from sqlite3 import IntegrityError
 from app.configs.database import db
 from app.models.leads_model import LeadModel
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound, ProgrammingError
 from app.leads_package.leads_services import validate_keys
 from app.exc.leads_exception import InvalidEmail, InvalidPhone
 
@@ -24,6 +24,8 @@ def register_lead():
         db.session.add(lead)
         db.session.commit()
 
+        return jsonify(lead), HTTPStatus.CREATED
+
     except MissingParameter as e:
         return e.args[0], HTTPStatus.BAD_REQUEST
     
@@ -39,35 +41,32 @@ def register_lead():
     except IntegrityError:
         return {"error": "E-mail or phone already registered"}, HTTPStatus.CONFLICT
 
-
-    return {
-        "name": lead.name,
-        "email": lead.email,
-        "phone": lead.phone,
-        "creation_date": lead.creation_date,
-        "last_visit": lead.last_visit,
-        "visits": lead.visits
-    }, HTTPStatus.CREATED
-
 def list_leads():
     try:
-        leads = (
+        """ leads = (
             LeadModel
             .query 
             .all()
-        )
+        ) """
+
+        leads = LeadModel.query.order_by(
+            LeadModel.visits.desc()
+        ).all()
 
         return jsonify(leads), HTTPStatus.OK
     
     except FileNotFoundError:
         return {
-            "message": "Nenhum arquivo encontrado"
+            "message": "File or table not found"
         }, HTTPStatus.NOT_FOUND
 
-def update_leads_visits(email: str):
+def update_leads_visits():
+    expected_keys = {"email"}
+    lead_data = request.get_json()
 
     try:
-
+        validate_keys(lead_data, expected_keys)
+        email = lead_data["email"]
         lead_data = LeadModel.query.filter_by(email=email).one()
 
         setattr(lead_data, "last_visit", datetime.now())
@@ -78,21 +77,35 @@ def update_leads_visits(email: str):
 
         return "", HTTPStatus.ACCEPTED
 
+    except KeyError as e:
+        return e.args[0], HTTPStatus.BAD_REQUEST
+
+    except ProgrammingError:
+        return {"error": "email must be a string"}, HTTPStatus.BAD_REQUEST
+
     except NoResultFound:
-        return {
-            "error": "E-mail not found. E-mail should be a valid string."
-        }, HTTPStatus.BAD_REQUEST
+        return {"error": "E-mail not found. E-mail must contain '@'."}, HTTPStatus.BAD_REQUEST
         
 
-def delete_lead(email: str):
-
+def delete_lead():
+    expected_keys = {"email"}
+    lead_data = request.get_json()
+    
     try: 
+        validate_keys(lead_data, expected_keys)
+        email = lead_data["email"]
         lead_data = LeadModel.query.filter_by(email=email).one()
 
         db.session.delete(lead_data)
         db.session.commit()
 
         return "", HTTPStatus.NO_CONTENT
+
+    except KeyError as e:
+        return e.args[0], HTTPStatus.BAD_REQUEST
+
+    except ProgrammingError:
+        return {"error": "email must be a string"}, HTTPStatus.BAD_REQUEST
 
     except NoResultFound:
         return {
