@@ -34,7 +34,13 @@ class LeadModel(db.Model):
 
     @validates("phone")
     def validate_phone(self, _, phone_to_be_tested):
-        if not re.match(r"(?:\+?\(?\d{2}?\)?\D?)?\d{5}\D?\d{4}", phone_to_be_tested):
+
+        ddd = r"^(\([1-9]{2}\))"
+        phone_number = r"(\s?\d{5}-?\d{4})$"
+        phone_exp = ddd + phone_number
+        phone_regex = re.compile(phone_exp)
+
+        if not re.fullmatch(phone_regex, phone_to_be_tested):
             raise InvalidPhone 
 
         return phone_to_be_tested
